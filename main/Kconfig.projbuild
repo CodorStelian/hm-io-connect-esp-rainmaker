@@ -1,0 +1,45 @@
+menu "Application config"
+    config APP_DEVICE_NAME
+        string "RainMaker device name"
+        default "HM IO Connect"
+
+    config APP_DEVICE_TYPE
+        string "RainMaker device type"
+        default "Device Hub"
+
+    config BOARD_BUTTON_GPIO
+        int "Boot Button GPIO"
+        default 0 if !IDF_TARGET_ESP32C3
+        default 9 if IDF_TARGET_ESP32C3
+        help
+            GPIO number on which the "Boot" button is connected. This is generally used
+            by the application for custom operations like toggling states, resetting to defaults, etc.
+
+    config I2C_SDA_GPIO
+        int "I2C SDA GPIO"
+        default 21
+
+    config I2C_SCL_GPIO
+        int "I2C SCL GPIO"
+        default 22
+
+    config RELAY_0_OUTPUT_GPIO
+        int "Relay 0 output GPIO"
+        default 19
+
+    config RELAY_1_OUTPUT_GPIO
+        int "Relay 1 output GPIO"
+        default 18
+
+    config RELAY_2_OUTPUT_GPIO
+        int "Relay 2 output GPIO"
+        default 17
+
+    config RELAY_3_OUTPUT_GPIO
+        int "Relay 3 output GPIO"
+        default 16
+
+    config RGBPIXEL_STRIP_OUTPUT_GPIO
+        int "RGB strip output GPIO"
+        default 5
+endmenu
