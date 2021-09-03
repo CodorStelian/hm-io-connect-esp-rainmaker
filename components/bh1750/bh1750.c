@@ -42,7 +42,6 @@
 #include <esp_idf_lib_helpers.h>
 #include "bh1750.h"
 
-
 #define OPCODE_HIGH  0x0
 #define OPCODE_HIGH2 0x1
 #define OPCODE_LOW   0x3

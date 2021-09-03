@@ -4,15 +4,16 @@
  * Forked from <https://github.com/mdvorak-iot/esp-wifi-reconnect>
  * NO LICENSE
  */
-#include <wifi_reconnect.h>
 #include <esp_log.h>
 #include <esp_task_wdt.h>
 #include <esp_wifi.h>
+
 #include <freertos/event_groups.h>
+#include <wifi_reconnect.h>
 
 static const char TAG[] = "wifi_reconnect";
 
-// Reconnect incremental backoff, in seconds 
+// Reconnect incremental backoff, in seconds
 static const uint8_t DELAYS[] = {0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233};
 
 #define RECONNECT_BIT BIT0
@@ -83,7 +84,13 @@ _Noreturn static void wifi_reconnect_task(void *unused)
 
             // Start reconnect
             ESP_LOGI(TAG, "Connecting to '%s', timeout %d ms", conf.sta.ssid, connect_timeout);
-            ESP_ERROR_CHECK_WITHOUT_ABORT(esp_wifi_connect());
+			esp_err_t err;
+            err = esp_wifi_connect();
+			if (err != ESP_OK) {
+				ESP_LOGE(TAG, "esp_wifi_connect() returned error 0x%x.", err);
+                esp_wifi_stop(); 
+                esp_wifi_start();
+			}
 
             // Wait for connection
             bool connected = (xEventGroupWaitBits(wifi_event_group, CONNECTED_BIT, pdFALSE, pdTRUE, connect_timeout / portTICK_PERIOD_MS) & CONNECTED_BIT) != 0;

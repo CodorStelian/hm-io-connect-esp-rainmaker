@@ -35,8 +35,7 @@
  * Copyright (c) 2019 Ruslan V. Uss <unclerus@gmail.com>
  * BSD Licensed as described in the file LICENSE
  */
-#ifndef __SHT3X_H__
-#define __SHT3X_H__
+#pragma once
 
 #include <stdbool.h>
 #include <i2cdev.h>
@@ -257,7 +256,3 @@ esp_err_t sht3x_get_results(sht3x_t *dev, float *temperature, float *humidity);
 #ifdef __cplusplus
 }
 #endif
-
-/**@}*/
-
-#endif /* __SHT3X_H__ */

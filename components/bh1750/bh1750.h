@@ -25,6 +25,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+ 
 /**
  * @file bh1750.h
  * @defgroup bh1750 bh1750
@@ -35,8 +36,7 @@
  * Copyright (c) 2018 Ruslan V. Uss <unclerus@gmail.com>
  * BSD Licensed as described in the file LICENSE
  */
-#ifndef __BH1750_H__
-#define __BH1750_H__
+#pragma once
 
 #include <stdint.h>
 #include <i2cdev.h>
@@ -135,7 +135,3 @@ esp_err_t bh1750_read(i2c_dev_t *dev, uint16_t *level);
 #ifdef __cplusplus
 }
 #endif
-
-/**@}*/
-
-#endif /* __BH1750_H__ */

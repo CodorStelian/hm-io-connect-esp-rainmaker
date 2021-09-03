@@ -28,8 +28,7 @@
  * Copyright (c) 2018 Ruslan V. Uss <unclerus@gmail.com>
  * MIT Licensed as described in the file LICENSE
  */
-#ifndef __I2CDEV_H__
-#define __I2CDEV_H__
+#pragma once
 
 #include <driver/i2c.h>
 #include <freertos/FreeRTOS.h>
@@ -216,7 +215,3 @@ esp_err_t i2c_dev_write_reg(const i2c_dev_t *dev, uint8_t reg,
 #ifdef __cplusplus
 }
 #endif
-
-/**@}*/
-
-#endif /* __I2CDEV_H__ */

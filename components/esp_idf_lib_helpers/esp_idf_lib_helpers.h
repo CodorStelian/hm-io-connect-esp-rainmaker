@@ -13,9 +13,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
-#if !defined(__ESP_IDF_LIB_HELPERS__H__)
-#define __ESP_IDF_LIB_HELPERS__H__
+#pragma once
 
 /* XXX this header file does not need to include freertos/FreeRTOS.h.
  * but without it, ESP8266 RTOS SDK does not include `sdkconfig.h` in correct
@@ -72,6 +70,4 @@
 #pragma message(VAR_NAME_VALUE(CONFIG_IDF_TARGET_ESP32))
 #pragma message(VAR_NAME_VALUE(CONFIG_IDF_TARGET_ESP8266))
 #pragma message(VAR_NAME_VALUE(ESP_IDF_VERSION_MAJOR))
-#endif
-
 #endif

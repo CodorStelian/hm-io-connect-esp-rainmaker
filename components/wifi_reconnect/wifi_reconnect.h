@@ -4,8 +4,7 @@
  * Forked from <https://github.com/mdvorak-iot/esp-wifi-reconnect>
  * NO LICENSE
  */
-#ifndef WIFI_RECONNECT_H
-#define WIFI_RECONNECT_H
+#pragma once
 
 #include <esp_err.h>
 #include <stdbool.h>
@@ -34,6 +33,4 @@ bool wifi_reconnect_wait_for_connection(uint32_t timeout_ms);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif
