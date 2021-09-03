@@ -5,7 +5,7 @@ This is the IO Connect demo application which is based on [ESP RainMaker](https:
 ## IO Connect Android app
 
 Control all of your ESP RainMaker devices with IO Connect Android app.
-![picture](img/io_connect_banner.jpg)
+![picture](img/io_connect_banner.png)
 [<img src="img/get_from_gstore.png"
      alt="Get it on Google Play"
      height="60">](https://play.google.com/store/apps/details?id=com.codor.stelian.ioconnect)
@@ -26,6 +26,8 @@ flash the project.
 ## Build and Flash firmware
 
 Follow the ESP RainMaker Documentation [Get Started](https://rainmaker.espressif.com/docs/get-started.html) section to build and flash this firmware. Just note the path of this example.
+
+Upload firmware package (.zip archive consisting of the binary, elf, map file, and other information useful for analysis) which you can find in the build/ folder of your project by navigating to the [Firmware Images](https://dashboard.rainmaker.espressif.com/home/firmware-images) of the ESP RainMaker Dashboard. Create a new OTA job and you are ready.
 
 ## What to expect?
 
