@@ -65,6 +65,8 @@ static bool g_light0_power_state = DEFAULT_LIGHT0_POWER_STATE;
 static bool g_light3_power_state = DEFAULT_LIGHT3_POWER_STATE;
 static uint16_t g_light0_value = DEFAULT_LIGHT0_BRIGHTNESS;
 
+static i2c_dev_t dev17;
+static sht3x_t dev31;
 static esp_timer_handle_t bh1750_sensor_timer;
 static esp_timer_handle_t sht31_sensor_timer;
 static uint16_t g_sensor_luminosity;
@@ -75,12 +77,6 @@ static const char *TAG = "app_driver";
 
 static void app_driver_sensor_bh1750_update(void *pvParameters)
 {
-    i2c_dev_t dev17;
-    memset(&dev17, 0, sizeof(i2c_dev_t)); // Zero descriptor
-
-    ESP_ERROR_CHECK(bh1750_init_desc(&dev17, ADDR_BH1750, 0, I2C_SDA_GPIO, I2C_SCL_GPIO));
-    ESP_ERROR_CHECK(bh1750_setup(&dev17, BH1750_MODE_CONTINUOUS, BH1750_RES_HIGH));
-
     uint16_t lux;
     if (bh1750_read(&dev17, &lux) != ESP_OK)
         ESP_LOGE(TAG, "BH1750 error, could not read sensor data");
@@ -91,16 +87,11 @@ static void app_driver_sensor_bh1750_update(void *pvParameters)
 }
 
 static void app_driver_sensor_sht31_update(void *pvParameters)
-{
-    sht3x_t dev31;
-    memset(&dev31, 0, sizeof(sht3x_t)); // Zero descriptor
-
-    ESP_ERROR_CHECK(sht3x_init_desc(&dev31, 0, ADDR_SHT31, I2C_SDA_GPIO, I2C_SCL_GPIO));
-    ESP_ERROR_CHECK(sht3x_init(&dev31));
-
+{  
     float temp;
     float humid;
-    ESP_ERROR_CHECK(sht3x_measure(&dev31, &temp, &humid));
+    if (sht3x_measure(&dev31, &temp, &humid) != ESP_OK)
+        ESP_LOGE(TAG, "SHT3x error, could not read sensor data");
     g_sensor_temperature = temp;
     g_sensor_humidity = humid;
     esp_rmaker_param_update_and_report(
@@ -129,6 +120,12 @@ float app_driver_sensor_get_current_humidity()
 esp_err_t app_driver_sensor_init(void)
 {
     ESP_ERROR_CHECK(i2cdev_init()); // Init Library
+    memset(&dev17, 0, sizeof(i2c_dev_t)); // Zero descriptor
+    memset(&dev31, 0, sizeof(sht3x_t)); // Zero descriptor
+    ESP_ERROR_CHECK(bh1750_init_desc(&dev17, ADDR_BH1750, 0, I2C_SDA_GPIO, I2C_SCL_GPIO));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(bh1750_setup(&dev17, BH1750_MODE_CONTINUOUS, BH1750_RES_HIGH));
+    ESP_ERROR_CHECK(sht3x_init_desc(&dev31, 0, ADDR_SHT31, I2C_SDA_GPIO, I2C_SCL_GPIO));
+    ESP_ERROR_CHECK_WITHOUT_ABORT(sht3x_init(&dev31));
     esp_timer_create_args_t bh1750_sensor_timer_conf = {
         .callback = app_driver_sensor_bh1750_update,
         .dispatch_method = ESP_TIMER_TASK,
