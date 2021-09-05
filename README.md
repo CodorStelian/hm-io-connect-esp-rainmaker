@@ -41,7 +41,7 @@ Upload firmware package (.zip archive consisting of the binary, elf, map file, a
 - It uses the esp timer to get periodic data from the temperature, humidity, and luminosity sensors.
 - The temperature and humidity values are refreshed every 5 minutes and the luminosity value is refreshed every minute.
 - You can check the temperature, humidity, and luminosity changes in the phone app.
-- There are some demo animations for RGB led ring like pulse and spinner. A future advanced implementation will be done.
+- There are some RGB led ring animations like pulse and spinner which are triggered by RainMaker and Wi-Fi events.
 - Toggling the buttons on the phone app should toggle the lightbulbs, and also print messages like these on the ESP32 monitor:
 
 ```
@@ -50,7 +50,7 @@ I (16073) app_main: Received value = true for Bedroom Light - power
 
 - You may also try changing the hue, saturation, and brightness for RGB led strip from the phone app.
 
-### RGB LED Ring, relays or sensors not working?
+### RGB led ring, relays or sensors not working?
 
 The RGB led ring is connected to GPIO 5. The solid-state relay module (4 channels) is connected to GPIO 19, 18, 17, and respectively 16. The temperature and humidity sensor (SHT31) and luminosity sensor (BH1750) are connected to GPIO 21(SDA) and GPIO 22(SCL).
 

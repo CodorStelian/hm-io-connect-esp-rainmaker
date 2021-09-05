@@ -39,7 +39,7 @@ esp_err_t rgbpixel_set_power_state(bool power);
 esp_err_t rgbpixel_set_brightness(uint16_t brightness);
 esp_err_t rgbpixel_set_hue(uint16_t hue);
 esp_err_t rgbpixel_set_saturation(uint16_t saturation);
-esp_err_t rgbpixel_set_anim(const char *type);
+esp_err_t rgbpixel_start_anim(uint8_t anim_style, bool run_once);
 
 bool rgbpixel_get_power_state(void);
 uint16_t rgbpixel_get_hue();

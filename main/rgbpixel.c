@@ -64,8 +64,12 @@ uint32_t rgbpixel_pulse_red_min;
 uint32_t rgbpixel_pulse_red_max;
 uint32_t rgbpixel_pulse_green_min;
 uint32_t rgbpixel_pulse_green_max;
+uint32_t rgbpixel_pulse_purple_min;
+uint32_t rgbpixel_pulse_purple_max;
 uint32_t rgbpixel_spin_blue_bg;
 uint32_t rgbpixel_spin_blue_fg;
+uint32_t rgbpixel_spin_orange_bg;
+uint32_t rgbpixel_spin_orange_fg;
 
 static const char *TAG = "rgbpixel";
 
@@ -177,10 +181,10 @@ esp_err_t rgbpixel_anim_pulse(uint32_t color_start, uint32_t color_end, double r
     return ESP_OK;
 }
 
-esp_err_t rgbpixel_anim_spinner(uint32_t color_bg, uint32_t color_fg, uint8_t position)
+esp_err_t rgbpixel_anim_spinner(uint32_t color_bg, uint32_t color_fg, uint8_t position, uint8_t pixel_cnt)
 {
     rgbpixel_anim_fill(color_bg);
-    for (int i = position; i < position + 2; i++)
+    for (int i = position; i < position + pixel_cnt; i++)
     {
         rgbpixel_set_pixel(i % g_rgbpixel_strip_pixels, color_fg);
     }
@@ -195,26 +199,34 @@ static void rgbpixel_anim(void *priv)
         rgbpixel_anim_counter = 0;
     if (rgbpixel_anim_counter == 0)
     {
-        rgbpixel_anim_up = !rgbpixel_anim_up; // swap
+        rgbpixel_anim_up = !rgbpixel_anim_up;
     }
 
     // 0.0->1.0 per duration
     double ratio = rgbpixel_anim_counter * 0.041;
     if (rgbpixel_anim_style == 0)
     {
-        rgbpixel_anim_spinner(rgbpixel_spin_blue_bg, rgbpixel_spin_blue_fg, rgbpixel_anim_counter);
+        rgbpixel_anim_spinner(rgbpixel_spin_blue_bg, rgbpixel_spin_blue_fg, rgbpixel_anim_counter, 2);
     }
     else if (rgbpixel_anim_style == 1)
     {
-        rgbpixel_anim_pulse(rgbpixel_pulse_blue_min, rgbpixel_pulse_blue_max, ratio, rgbpixel_anim_up);
+        rgbpixel_anim_spinner(rgbpixel_spin_orange_bg, rgbpixel_spin_orange_fg, rgbpixel_anim_counter, 6);
     }
     else if (rgbpixel_anim_style == 2)
     {
-        rgbpixel_anim_pulse(rgbpixel_pulse_red_min, rgbpixel_pulse_red_max, ratio, rgbpixel_anim_up);
+        rgbpixel_anim_pulse(rgbpixel_pulse_blue_min, rgbpixel_pulse_blue_max, ratio, rgbpixel_anim_up);
     }
     else if (rgbpixel_anim_style == 3)
     {
+        rgbpixel_anim_pulse(rgbpixel_pulse_red_min, rgbpixel_pulse_red_max, ratio, rgbpixel_anim_up);
+    }
+    else if (rgbpixel_anim_style == 4)
+    {
         rgbpixel_anim_pulse(rgbpixel_pulse_green_min, rgbpixel_pulse_green_max, ratio, rgbpixel_anim_up);
+    }
+    else if (rgbpixel_anim_style == 5)
+    {
+        rgbpixel_anim_pulse(rgbpixel_pulse_purple_min, rgbpixel_pulse_purple_max, ratio, rgbpixel_anim_up);
     }
     g_rgbpixel_strip->refresh(g_rgbpixel_strip, 100);
 }
@@ -229,26 +241,18 @@ static void rgbpixel_anim_duration(void *priv)
         rgbpixel_set(g_rgbpixel_hue, g_rgbpixel_saturation, g_rgbpixel_value);
 }
 
-esp_err_t rgbpixel_set_anim(const char *type)
+esp_err_t rgbpixel_start_anim(uint8_t anim_style, bool run_once)
 {
-    if (strcmp(type, "ERROR") == 0)
-    {
-        rgbpixel_anim_style = 2;
+    rgbpixel_anim_style = anim_style;
+    if (!esp_timer_is_active(rgbpixel_anim_timer)) {
+        esp_timer_start_periodic(rgbpixel_anim_timer, DEFAULT_REFRESH_ANIM_PERIOD_RGBPIXEL * 1000U);
     }
-    else if (strcmp(type, "OTA") == 0)
-    {
-        rgbpixel_anim_style = 2;
+    if (esp_timer_is_active(rgbpixel_anim_duration_timer)) {
+            esp_timer_stop(rgbpixel_anim_duration_timer);
+        }
+    if (run_once) {
+        esp_timer_start_once(rgbpixel_anim_duration_timer, DEFAULT_ANIM_DURATION_RGBPIXEL * 1000000U);
     }
-    else if (strcmp(type, "LOAD") == 0)
-    {
-        rgbpixel_anim_style = 0;
-    }
-    else if (strcmp(type, "MOVE") == 0)
-    {
-        rgbpixel_anim_style = 1;
-    }
-    esp_timer_start_periodic(rgbpixel_anim_timer, DEFAULT_REFRESH_ANIM_PERIOD_RGBPIXEL * 1000U);
-    esp_timer_start_once(rgbpixel_anim_duration_timer, DEFAULT_ANIM_DURATION_RGBPIXEL * 1000000U);
     return ESP_OK;
 }
 
@@ -256,12 +260,16 @@ esp_err_t app_driver_rgbpixel_init(void)
 {
     rgbpixel_spin_blue_bg = rgbpixel_color_rgb(0, 0, 255);
     rgbpixel_spin_blue_fg = rgbpixel_color_rgb(0, 255, 255);
+    rgbpixel_spin_orange_bg = rgbpixel_color_rgb(0, 0, 0);
+    rgbpixel_spin_orange_fg = rgbpixel_color_rgb(255, 80, 0);
     rgbpixel_pulse_blue_min = rgbpixel_color_rgb(0, 0, 255);
     rgbpixel_pulse_blue_max = rgbpixel_color_rgb(0, 255, 255);
     rgbpixel_pulse_red_min = rgbpixel_color_rgb(40, 17, 0);
     rgbpixel_pulse_red_max = rgbpixel_color_rgb(255, 17, 0);
     rgbpixel_pulse_green_min = rgbpixel_color_rgb(0, 17, 0);
     rgbpixel_pulse_green_max = rgbpixel_color_rgb(0, 255, 0);
+    rgbpixel_pulse_purple_min = rgbpixel_color_rgb(40, 0, 50);
+    rgbpixel_pulse_purple_max = rgbpixel_color_rgb(200, 0, 255);
 
     rmt_config_t config = RMT_DEFAULT_CONFIG_TX(RGBPIXEL_STRIP_GPIO, RMT_TX_CHANNEL);
     // set counter clock to 40MHz
@@ -270,7 +278,7 @@ esp_err_t app_driver_rgbpixel_init(void)
     ESP_ERROR_CHECK(rmt_config(&config));
     ESP_ERROR_CHECK(rmt_driver_install(config.channel, 0, 0));
 
-    // install ws2812 driver
+    // Install WS2812 driver
     led_strip_config_t strip_config = LED_STRIP_DEFAULT_CONFIG(g_rgbpixel_strip_pixels, (led_strip_dev_t)config.channel);
     g_rgbpixel_strip = led_strip_new_rmt_ws2812(&strip_config);
     if (!g_rgbpixel_strip)

@@ -26,10 +26,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <esp_log.h>
+#include <esp_event.h>
 #include <esp_rmaker_core.h>
 #include <esp_rmaker_standard_devices.h>
 #include <esp_rmaker_standard_params.h>
+#include <esp_rmaker_common_events.h>
 #include <esp_wifi.h>
+#include <wifi_provisioning/manager.h>
 
 #include <nvs_flash.h>
 #include <string.h>
@@ -43,6 +46,7 @@
 #include <wifi_reconnect.h>
 
 static const char TAG[] = "app_main";
+static const char TAG_EVENT[] = "app_main_EVENT";
 
 // Devices
 esp_rmaker_device_t *bedroom_light;
@@ -58,7 +62,7 @@ esp_rmaker_device_t *luminosity_sensor;
 // Program
 static void app_devices_init(esp_rmaker_node_t *node);
 
-/* Callback to handle commands received from the RainMaker cloud */
+// Callback to handle commands received from the RainMaker cloud
 static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_param_t *param,
                           const esp_rmaker_param_val_t val, void *priv_data, esp_rmaker_write_ctx_t *ctx)
 {
@@ -74,6 +78,7 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
         {
             ESP_LOGI(TAG, "Received value = %s for %s - %s", val.val.b ? "true" : "false", device_name, param_name);
             rgbpixel_set_power_state(val.val.b);
+            rgbpixel_start_anim(0, true);
         }
         else if (strcmp(param_name, "Brightness") == 0)
         {
@@ -97,6 +102,7 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
         {
             ESP_LOGI(TAG, "Received value = %s for %s - %s", val.val.b ? "true" : "false", device_name, param_name);
             app_driver_set_light0_power_state(val.val.b);
+            rgbpixel_start_anim(0, true);
         }
         else if (strcmp(param_name, "Brightness") == 0)
         {
@@ -110,6 +116,7 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
         if (strcmp(param_name, ESP_RMAKER_DEF_POWER_NAME) == 0)
         {
             app_driver_set_light3_power_state(val.val.b);
+            rgbpixel_start_anim(0, true);
         }
     }
     else
@@ -117,9 +124,92 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
         // Silently ignoring invalid params
         return ESP_OK;
     }
-    rgbpixel_set_anim("LOAD");
     esp_rmaker_param_update_and_report(param, val);
     return ESP_OK;
+}
+
+// Event handler for catching Wi-Fi events
+static void event_handler(void* arg, esp_event_base_t event_base,
+                          int event_id, void* event_data)
+{
+    if (event_base == WIFI_PROV_EVENT) {
+        switch (event_id) {
+            case WIFI_PROV_START:
+                ESP_LOGI(TAG_EVENT, "Provisioning started");
+                rgbpixel_start_anim(1, false);
+                break;
+            case WIFI_PROV_CRED_SUCCESS:
+                ESP_LOGI(TAG_EVENT, "Provisioning successful");
+                rgbpixel_start_anim(4, true);
+                break;
+            default:
+                break;
+        }
+    }
+    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+        ESP_LOGI(TAG_EVENT, "WiFi disconnected");
+        rgbpixel_start_anim(5, false);
+    }
+    else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
+        ESP_LOGI(TAG_EVENT, "WiFi connected");
+        rgbpixel_start_anim(2, true);
+    }
+}
+
+// Event handler for catching RainMaker events
+static void rmk_event_handler(void* arg, esp_event_base_t event_base,
+                          int event_id, void* event_data)
+{
+    if (event_base == RMAKER_EVENT) {
+        switch (event_id) {
+            case RMAKER_EVENT_INIT_DONE:
+                ESP_LOGI(TAG_EVENT, "RainMaker Initialised.");
+                rgbpixel_start_anim(1, false);
+                break;
+            case RMAKER_EVENT_CLAIM_STARTED:
+                ESP_LOGI(TAG_EVENT, "RainMaker Claim Started.");
+                rgbpixel_start_anim(1, false);
+                break;
+            case RMAKER_EVENT_CLAIM_SUCCESSFUL:
+                ESP_LOGI(TAG_EVENT, "RainMaker Claim Successful.");
+                rgbpixel_start_anim(2, true);
+                break;
+            case RMAKER_EVENT_CLAIM_FAILED:
+                ESP_LOGI(TAG_EVENT, "RainMaker Claim Failed.");
+                rgbpixel_start_anim(3, true);
+                break;
+            default:
+                ESP_LOGW(TAG_EVENT, "Unhandled RainMaker Event: %d", event_id);
+        }
+    } else if (event_base == RMAKER_COMMON_EVENT) {
+        switch (event_id) {
+            case RMAKER_EVENT_REBOOT:
+                ESP_LOGI(TAG_EVENT, "Rebooting in %d seconds.", *((uint8_t *)event_data));
+                rgbpixel_start_anim(1, false);
+                break;
+            case RMAKER_EVENT_WIFI_RESET:
+                ESP_LOGI(TAG_EVENT, "Wi-Fi credentials reset.");
+                rgbpixel_start_anim(1, false);
+                break;
+            case RMAKER_EVENT_FACTORY_RESET:
+                ESP_LOGI(TAG_EVENT, "Node reset to factory defaults.");
+                rgbpixel_start_anim(1, false);
+                break;
+            case RMAKER_MQTT_EVENT_CONNECTED:
+                ESP_LOGI(TAG_EVENT, "Connected to MQTT Broker.");
+                break;
+            case RMAKER_MQTT_EVENT_DISCONNECTED:
+                ESP_LOGI(TAG_EVENT, "Disconnected from MQTT Broker.");
+                break;
+            case RMAKER_MQTT_EVENT_PUBLISHED:
+                ESP_LOGI(TAG_EVENT, "MQTT message published successfully.");
+                break;
+            default:
+                ESP_LOGW(TAG_EVENT, "Unhandled RainMaker Common Event: %d", event_id);
+        }
+    } else {
+        ESP_LOGW(TAG_EVENT, "Invalid event received!");
+    }
 }
 
 void setup()
@@ -141,12 +231,31 @@ void setup()
         ESP_LOGE(TAG, "Could not setup rgbpixel!");
     }
 
+    // Wi-Fi
     struct app_wifi_config wifi_cfg = {
         .wifi_connect = wifi_reconnect_resume,
     };
     ESP_ERROR_CHECK(app_wifi_init(&wifi_cfg));
     ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_MAX_MODEM));
+
+    // Register an event handler to catch Wi-Fi, IP and Provisioning events
+    err = esp_event_handler_register(WIFI_PROV_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL);
+    err = esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, &event_handler, NULL);
+    err = esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL);
+    if (err != ESP_OK)
+    {
+        ESP_LOGW(TAG, "Could not register Wi-Fi event handler");
+    }
+
+    // Start Wi-Fi reconnect
     ESP_ERROR_CHECK(wifi_reconnect_start());
+
+    // Register an event handler to catch RainMaker events
+    err = esp_event_handler_register(RMAKER_EVENT, ESP_EVENT_ANY_ID, &rmk_event_handler, NULL);
+    if (err != ESP_OK)
+    {
+        ESP_LOGW(TAG, "Could not register RainMaker event handler");
+    }
 
     // RainMaker
     esp_rmaker_node_t *node = NULL;
