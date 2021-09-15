@@ -30,6 +30,7 @@
 #include <esp_rmaker_core.h>
 #include <esp_rmaker_standard_devices.h>
 #include <esp_rmaker_standard_params.h>
+#include <esp_rmaker_standard_types.h>
 #include <esp_rmaker_common_events.h>
 #include <esp_wifi.h>
 #include <wifi_provisioning/manager.h>
@@ -196,13 +197,13 @@ static void rmk_event_handler(void* arg, esp_event_base_t event_base,
                 rgbpixel_start_anim(1, false);
                 break;
             case RMAKER_MQTT_EVENT_CONNECTED:
-                ESP_LOGI(TAG_EVENT, "Connected to MQTT Broker.");
+                ESP_LOGI(TAG_EVENT, "MQTT Connected.");
                 break;
             case RMAKER_MQTT_EVENT_DISCONNECTED:
-                ESP_LOGI(TAG_EVENT, "Disconnected from MQTT Broker.");
+                ESP_LOGI(TAG_EVENT, "MQTT Disconnected.");
                 break;
             case RMAKER_MQTT_EVENT_PUBLISHED:
-                ESP_LOGI(TAG_EVENT, "MQTT message published successfully.");
+                ESP_LOGI(TAG_EVENT, "MQTT Published. Msg id: %d.", *((int *)event_data));
                 break;
             default:
                 ESP_LOGW(TAG_EVENT, "Unhandled RainMaker Common Event: %d", event_id);
@@ -224,12 +225,12 @@ void setup()
     ESP_ERROR_CHECK(err);
 
     // Setup
-    app_driver_init();
     err = app_driver_rgbpixel_init();
     if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "Could not setup rgbpixel!");
     }
+    app_driver_init();
 
     // Wi-Fi
     struct app_wifi_config wifi_cfg = {
@@ -299,6 +300,11 @@ static void app_devices_init(esp_rmaker_node_t *node)
     rgb_ring_light = esp_rmaker_lightbulb_device_create("RGB Light", NULL, rgbpixel_get_power_state());
     ESP_ERROR_CHECK(esp_rmaker_device_add_cb(rgb_ring_light, write_cb, NULL));
     ESP_ERROR_CHECK(esp_rmaker_device_add_param(rgb_ring_light, esp_rmaker_hue_param_create("Hue", rgbpixel_get_hue())));
+    //esp_rmaker_param_t *hue_param = esp_rmaker_param_create("Hue", ESP_RMAKER_PARAM_HUE,
+    //        esp_rmaker_int(rgbpixel_get_hue()), PROP_FLAG_READ | PROP_FLAG_WRITE);
+    //ESP_ERROR_CHECK(esp_rmaker_param_add_ui_type(hue_param, "esp.ui.hue-circle"));
+    //ESP_ERROR_CHECK(esp_rmaker_param_add_bounds(hue_param, esp_rmaker_int(0), esp_rmaker_int(360), esp_rmaker_int(1)));
+    //ESP_ERROR_CHECK(esp_rmaker_device_add_param(rgb_ring_light, hue_param));
     ESP_ERROR_CHECK(esp_rmaker_device_add_param(rgb_ring_light, esp_rmaker_saturation_param_create("Saturation", rgbpixel_get_saturation())));
     ESP_ERROR_CHECK(esp_rmaker_device_add_param(rgb_ring_light, esp_rmaker_brightness_param_create("Brightness", rgbpixel_get_brightness())));
     ESP_ERROR_CHECK(esp_rmaker_node_add_device(node, rgb_ring_light));
@@ -315,7 +321,7 @@ static void app_devices_init(esp_rmaker_node_t *node)
 
     luminosity_sensor = esp_rmaker_device_create("Luminosity Sensor", NULL, NULL);
     ESP_ERROR_CHECK(esp_rmaker_device_add_param(luminosity_sensor, esp_rmaker_name_param_create("Name", "Luminosity Sensor")));
-    esp_rmaker_param_t *luminosity_param = esp_rmaker_param_create("Luminosity", NULL, esp_rmaker_float(app_driver_sensor_get_current_humidity()), PROP_FLAG_READ);
+    esp_rmaker_param_t *luminosity_param = esp_rmaker_param_create("Luminosity", NULL, esp_rmaker_int(app_driver_sensor_get_current_luminosity()), PROP_FLAG_READ);
     ESP_ERROR_CHECK(esp_rmaker_device_add_param(luminosity_sensor, luminosity_param));
     ESP_ERROR_CHECK(esp_rmaker_device_assign_primary_param(luminosity_sensor, luminosity_param));
     ESP_ERROR_CHECK(esp_rmaker_node_add_device(node, luminosity_sensor));

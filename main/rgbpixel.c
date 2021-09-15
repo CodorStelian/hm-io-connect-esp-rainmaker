@@ -29,6 +29,8 @@
 #include <esp_rmaker_standard_params.h>
 #include <esp_rmaker_standard_types.h>
 
+#include <freertos/FreeRTOS.h>
+#include <freertos/timers.h>
 #include <driver/rmt.h>
 #include <led_strip.h>
 #include <string.h>
@@ -47,8 +49,8 @@
 
 static led_strip_t *g_rgbpixel_strip;
 
-static esp_timer_handle_t rgbpixel_anim_timer;
-static esp_timer_handle_t rgbpixel_anim_duration_timer;
+static TimerHandle_t rgbpixel_anim_timer;
+static TimerHandle_t rgbpixel_anim_duration_timer;
 static bool g_rgbpixel_power_state = DEFAULT_RGBPIXEL_POWER_STATE;
 static uint16_t g_rgbpixel_hue = DEFAULT_RGBPIXEL_HUE;
 static uint16_t g_rgbpixel_saturation = DEFAULT_RGBPIXEL_SATURATION;
@@ -233,7 +235,7 @@ static void rgbpixel_anim(void *priv)
 
 static void rgbpixel_anim_duration(void *priv)
 {
-    esp_timer_stop(rgbpixel_anim_timer);
+    xTimerStop(rgbpixel_anim_timer, 0);
     ESP_LOGI(TAG, "Enhanced rgbpixel animation is ending now");
     if (!g_rgbpixel_power_state)
         g_rgbpixel_strip->clear(g_rgbpixel_strip, 100);
@@ -244,14 +246,14 @@ static void rgbpixel_anim_duration(void *priv)
 esp_err_t rgbpixel_start_anim(uint8_t anim_style, bool run_once)
 {
     rgbpixel_anim_style = anim_style;
-    if (!esp_timer_is_active(rgbpixel_anim_timer)) {
-        esp_timer_start_periodic(rgbpixel_anim_timer, DEFAULT_REFRESH_ANIM_PERIOD_RGBPIXEL * 1000U);
+    if (!xTimerIsTimerActive(rgbpixel_anim_timer)) {
+		xTimerStart(rgbpixel_anim_timer, 0);
     }
-    if (esp_timer_is_active(rgbpixel_anim_duration_timer)) {
-            esp_timer_stop(rgbpixel_anim_duration_timer);
-        }
+    if (xTimerIsTimerActive(rgbpixel_anim_duration_timer)) {
+        xTimerStop(rgbpixel_anim_duration_timer, 0);
+    }
     if (run_once) {
-        esp_timer_start_once(rgbpixel_anim_duration_timer, DEFAULT_ANIM_DURATION_RGBPIXEL * 1000000U);
+		 xTimerStart(rgbpixel_anim_duration_timer, 0);
     }
     return ESP_OK;
 }
@@ -295,22 +297,10 @@ esp_err_t app_driver_rgbpixel_init(void)
         g_rgbpixel_strip->clear(g_rgbpixel_strip, 100);
     }
 
-    esp_timer_create_args_t rgbpixel_anim_timer_conf = {
-        .callback = rgbpixel_anim,
-        .dispatch_method = ESP_TIMER_TASK,
-        .name = "rgbpixel_anim_tm"};
-    esp_timer_create_args_t rgbpixel_anim_duration_timer_conf = {
-        .callback = rgbpixel_anim_duration,
-        .dispatch_method = ESP_TIMER_TASK,
-        .name = "rgbpixel_anim_duration_tm"};
-    if (esp_timer_create(&rgbpixel_anim_timer_conf, &rgbpixel_anim_timer) != ESP_OK)
-    {
-        return ESP_FAIL;
-    }
-    if (esp_timer_create(&rgbpixel_anim_duration_timer_conf, &rgbpixel_anim_duration_timer) != ESP_OK)
-    {
-        return ESP_FAIL;
-    }
+    rgbpixel_anim_timer = xTimerCreate("rgbpixel_anim_tm", (DEFAULT_REFRESH_ANIM_PERIOD_RGBPIXEL) / portTICK_PERIOD_MS,
+                        pdTRUE, NULL, rgbpixel_anim);
+    rgbpixel_anim_duration_timer = xTimerCreate("rgbpixel_anim_duration_tm", (DEFAULT_ANIM_DURATION_RGBPIXEL * 1000) / portTICK_PERIOD_MS,
+                        pdFALSE, NULL, rgbpixel_anim_duration);
 
     return ESP_OK;
 }
