@@ -28,3 +28,5 @@ typedef enum {
 
 esp_err_t app_wifi_init(const struct app_wifi_config *config);
 esp_err_t app_wifi_start(app_wifi_pop_type_t pop_type);
+esp_err_t get_device_mac(char *mac, size_t max);
+esp_err_t get_device_pop(char *pop, size_t max, app_wifi_pop_type_t pop_type);

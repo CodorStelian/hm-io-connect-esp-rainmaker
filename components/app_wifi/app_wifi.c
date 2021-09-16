@@ -214,8 +214,23 @@ static esp_err_t get_device_service_name(char *service_name, size_t max)
     return ESP_OK;
 }
 
+esp_err_t get_device_mac(char *mac, size_t max)
+{
+    if (!mac || !max) {
+        return ESP_ERR_INVALID_ARG;
+    }
 
-static esp_err_t get_device_pop(char *pop, size_t max, app_wifi_pop_type_t pop_type)
+    uint8_t eth_mac[6];
+    esp_err_t err = esp_wifi_get_mac(WIFI_IF_STA, eth_mac);
+    if (err == ESP_OK) {
+        snprintf(mac, max, "%02x:%02x:%02x:%02x:%02x:%02x", eth_mac[0], eth_mac[1], eth_mac[2], eth_mac[3], eth_mac[4], eth_mac[5]);
+        return ESP_OK;
+    } else {
+        return err;
+    }
+}
+
+esp_err_t get_device_pop(char *pop, size_t max, app_wifi_pop_type_t pop_type)
 {
     if (!pop || !max) {
         return ESP_ERR_INVALID_ARG;
