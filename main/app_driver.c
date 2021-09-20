@@ -26,8 +26,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include <esp_log.h>
-#include <esp_rmaker_standard_params.h>
-#include <esp_rmaker_standard_types.h>
+#include <esp_rmaker_core.h>
+#include <ioc_standard_types.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/timers.h>
@@ -106,7 +106,7 @@ static void app_driver_sensor_bh1750_update(void *pvParameters)
 {
     app_driver_sensor_get_bh1750_data();
     esp_rmaker_param_update_and_report(
-        esp_rmaker_device_get_param_by_name(luminosity_sensor, "Luminosity"),
+        esp_rmaker_device_get_param_by_type(luminosity_sensor, IOC_PARAM_LUMINOSITY),
         esp_rmaker_int(g_sensor_luminosity));
 }
 
@@ -114,10 +114,10 @@ static void app_driver_sensor_sht31_update(void *pvParameters)
 {  
     app_driver_sensor_get_sht31_data();
     esp_rmaker_param_update_and_report(
-        esp_rmaker_device_get_param_by_type(temperature_sensor, ESP_RMAKER_PARAM_TEMPERATURE),
+        esp_rmaker_device_get_param_by_type(temperature_sensor, IOC_PARAM_TEMPERATURE),
         esp_rmaker_float(g_sensor_temperature));
     esp_rmaker_param_update_and_report(
-        esp_rmaker_device_get_param_by_name(humidity_sensor, "Humidity"),
+        esp_rmaker_device_get_param_by_type(humidity_sensor, IOC_PARAM_HUMIDITY),
         esp_rmaker_float(g_sensor_humidity));
 }
 
@@ -183,7 +183,7 @@ static void push_btn_cb(void *arg)
     bool new_light0_state = !g_light0_power_state;
     app_driver_set_light0_power_state(new_light0_state);
     esp_rmaker_param_update_and_report(
-        esp_rmaker_device_get_param_by_type(bedroom_light, ESP_RMAKER_PARAM_POWER),
+        esp_rmaker_device_get_param_by_type(bedroom_light, IOC_PARAM_POWER),
         esp_rmaker_bool(new_light0_state));
 }
 
@@ -292,7 +292,7 @@ esp_err_t app_driver_set_light0_brightness(uint16_t brightness)
     g_light0_value = brightness;
     g_light0_power_state = 1;
     esp_rmaker_param_update_and_report(
-        esp_rmaker_device_get_param_by_type(bedroom_light, ESP_RMAKER_PARAM_POWER),
+        esp_rmaker_device_get_param_by_type(bedroom_light, IOC_PARAM_POWER),
         esp_rmaker_bool(g_light0_power_state));
     return app_driver_set_light0();
 }

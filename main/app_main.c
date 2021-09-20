@@ -28,12 +28,12 @@
 #include <esp_log.h>
 #include <esp_event.h>
 #include <esp_rmaker_core.h>
-#include <esp_rmaker_standard_devices.h>
-#include <esp_rmaker_standard_params.h>
-#include <esp_rmaker_standard_types.h>
 #include <esp_rmaker_common_events.h>
 #include <esp_rmaker_utils.h>
 #include <esp_wifi.h>
+#include <ioc_standard_devices.h>
+#include <ioc_standard_params.h>
+#include <ioc_standard_types.h>
 #include <wifi_provisioning/manager.h>
 
 #include <nvs_flash.h>
@@ -43,7 +43,6 @@
 #include <app_priv.h>
 #include <app_rainmaker.h>
 #include <app_wifi.h>
-
 #include <rgbpixel.h>
 #include <wifi_reconnect.h>
 
@@ -77,55 +76,15 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
     {
         ESP_LOGI(TAG, "Received write request via : %s", esp_rmaker_device_cb_src_to_str(ctx->src));
     }
-    if (strcmp(device_name, "ESP Device") == 0)
+    if (strcmp(device_name, "Bedroom Light") == 0)
     {
-        ESP_LOGI(TAG, "Received value = %s for %s - %s", val.val.b ? "true" : "false", device_name, param_name);
-        if (strcmp(param_name, "Reboot") == 0)
-        {
-            esp_rmaker_reboot(10);
-        }
-        else if (strcmp(param_name, "Factory Reset") == 0)
-        {
-            esp_rmaker_factory_reset(5, 10);
-        }
-        else if (strcmp(param_name, "Wi-Fi Reset") == 0)
-        {
-            esp_rmaker_wifi_reset(5, 10);
-        }
-    }
-    else if (strcmp(device_name, "RGB Light") == 0)
-    {
-        if (strcmp(param_name, ESP_RMAKER_DEF_POWER_NAME) == 0)
-        {
-            ESP_LOGI(TAG, "Received value = %s for %s - %s", val.val.b ? "true" : "false", device_name, param_name);
-            rgbpixel_set_power_state(val.val.b);
-            rgbpixel_start_anim(0, true);
-        }
-        else if (strcmp(param_name, "Brightness") == 0)
-        {
-            ESP_LOGI(TAG, "Received value = %d for %s - %s", val.val.i, device_name, param_name);
-            rgbpixel_set_brightness(val.val.i);
-        }
-        else if (strcmp(param_name, "Hue") == 0)
-        {
-            ESP_LOGI(TAG, "Received value = %d for %s - %s", val.val.i, device_name, param_name);
-            rgbpixel_set_hue(val.val.i);
-        }
-        else if (strcmp(param_name, "Saturation") == 0)
-        {
-            ESP_LOGI(TAG, "Received value = %d for %s - %s", val.val.i, device_name, param_name);
-            rgbpixel_set_saturation(val.val.i);
-        }
-    }
-    else if (strcmp(device_name, "Bedroom Light") == 0)
-    {
-        if (strcmp(param_name, ESP_RMAKER_DEF_POWER_NAME) == 0)
+        if (strcmp(param_name, IOC_DEF_POWER_NAME) == 0)
         {
             ESP_LOGI(TAG, "Received value = %s for %s - %s", val.val.b ? "true" : "false", device_name, param_name);
             app_driver_set_light0_power_state(val.val.b);
             rgbpixel_start_anim(0, true);
         }
-        else if (strcmp(param_name, "Brightness") == 0)
+        else if (strcmp(param_name, IOC_DEF_BRIGHTNESS_NAME) == 0)
         {
             ESP_LOGI(TAG, "Received value = %d for %s - %s", val.val.i, device_name, param_name);
             app_driver_set_light0_brightness(val.val.i);
@@ -134,10 +93,50 @@ static esp_err_t write_cb(const esp_rmaker_device_t *device, const esp_rmaker_pa
     else if (strcmp(device_name, "Wall Light") == 0)
     {
         ESP_LOGI(TAG, "Received value = %s for %s - %s", val.val.b ? "true" : "false", device_name, param_name);
-        if (strcmp(param_name, ESP_RMAKER_DEF_POWER_NAME) == 0)
+        if (strcmp(param_name, IOC_DEF_POWER_NAME) == 0)
         {
             app_driver_set_light3_power_state(val.val.b);
             rgbpixel_start_anim(0, true);
+        }
+    }
+    else if (strcmp(device_name, "RGB Light") == 0)
+    {
+        if (strcmp(param_name, IOC_DEF_POWER_NAME) == 0)
+        {
+            ESP_LOGI(TAG, "Received value = %s for %s - %s", val.val.b ? "true" : "false", device_name, param_name);
+            rgbpixel_set_power_state(val.val.b);
+            rgbpixel_start_anim(0, true);
+        }
+        else if (strcmp(param_name, IOC_DEF_BRIGHTNESS_NAME) == 0)
+        {
+            ESP_LOGI(TAG, "Received value = %d for %s - %s", val.val.i, device_name, param_name);
+            rgbpixel_set_brightness(val.val.i);
+        }
+        else if (strcmp(param_name, IOC_DEF_HUE_NAME) == 0)
+        {
+            ESP_LOGI(TAG, "Received value = %d for %s - %s", val.val.i, device_name, param_name);
+            rgbpixel_set_hue(val.val.i);
+        }
+        else if (strcmp(param_name, IOC_DEF_SATURATION_NAME) == 0)
+        {
+            ESP_LOGI(TAG, "Received value = %d for %s - %s", val.val.i, device_name, param_name);
+            rgbpixel_set_saturation(val.val.i);
+        }
+    }
+    else if (strcmp(device_name, "ESP Device") == 0)
+    {
+        ESP_LOGI(TAG, "Received value = %s for %s - %s", val.val.b ? "true" : "false", device_name, param_name);
+        if (strcmp(param_name, IOC_DEF_REBOOT_NAME) == 0)
+        {
+            esp_rmaker_reboot(10);
+        }
+        else if (strcmp(param_name, IOC_DEF_WIFI_RESET_NAME) == 0)
+        {
+            esp_rmaker_wifi_reset(5, 10);
+        }
+        else if (strcmp(param_name, IOC_DEF_FACTORY_RESET_NAME) == 0)
+        {
+            esp_rmaker_factory_reset(5, 10);
         }
     }
     else
@@ -309,80 +308,49 @@ void setup()
 static void app_devices_init(esp_rmaker_node_t *node)
 {
     // Create devices
-    bedroom_light = esp_rmaker_lightbulb_device_create("Bedroom Light", NULL, app_driver_get_light0_power_state());
+    bedroom_light = ioc_lightbulb_device_create("Bedroom Light", NULL, app_driver_get_light0_power_state());
     esp_rmaker_device_add_cb(bedroom_light, write_cb, NULL);
-    esp_rmaker_device_add_param(bedroom_light, esp_rmaker_brightness_param_create(ESP_RMAKER_DEF_BRIGHTNESS_NAME, app_driver_get_light0_brightness()));
+    esp_rmaker_device_add_param(bedroom_light, ioc_brightness_param_create(IOC_DEF_BRIGHTNESS_NAME, app_driver_get_light0_brightness()));
     esp_rmaker_node_add_device(node, bedroom_light);
 
-    wall_light = esp_rmaker_device_create("Wall Light", ESP_RMAKER_DEVICE_LIGHTBULB, NULL);
+    wall_light = ioc_lightbulb_device_create("Wall Light", NULL, app_driver_get_light3_power_state());
     esp_rmaker_device_add_cb(wall_light, write_cb, NULL);
-    esp_rmaker_device_add_param(wall_light, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, "Wall Light"));
-    esp_rmaker_param_t *wlight_power_param = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, rgbpixel_get_power_state());
-    esp_rmaker_param_add_ui_type(wlight_power_param, "esp.ui.push-btn-big");
-    esp_rmaker_device_add_param(wall_light, wlight_power_param);
-    esp_rmaker_device_assign_primary_param(wall_light, wlight_power_param);
     esp_rmaker_node_add_device(node, wall_light);
 
-    rgb_ring_light = esp_rmaker_device_create("RGB Light", "esp.device.lightbulb-rgb", NULL);
+    rgb_ring_light = ioc_lightbulb_rgb_device_create("RGB Light", NULL, rgbpixel_get_power_state());
     esp_rmaker_device_add_cb(rgb_ring_light, write_cb, NULL);
-    esp_rmaker_device_add_param(rgb_ring_light, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, "RGB Light"));
-    esp_rmaker_param_t *rgb_power_param = esp_rmaker_power_param_create(ESP_RMAKER_DEF_POWER_NAME, rgbpixel_get_power_state());
-    esp_rmaker_device_add_param(rgb_ring_light, rgb_power_param);
-    esp_rmaker_device_assign_primary_param(rgb_ring_light, rgb_power_param);
-    // esp_rmaker_device_add_param(rgb_ring_light, esp_rmaker_hue_param_create(ESP_RMAKER_DEF_HUE_NAME, rgbpixel_get_hue()));
-    esp_rmaker_param_t *hue_param = esp_rmaker_param_create(ESP_RMAKER_DEF_HUE_NAME, ESP_RMAKER_PARAM_HUE,
-            esp_rmaker_int(rgbpixel_get_hue()), PROP_FLAG_READ | PROP_FLAG_WRITE);
-    esp_rmaker_param_add_ui_type(hue_param, "esp.ui.hue-circle");
-    esp_rmaker_param_add_bounds(hue_param, esp_rmaker_int(0), esp_rmaker_int(360), esp_rmaker_int(1));
-    esp_rmaker_device_add_param(rgb_ring_light, hue_param);
-    esp_rmaker_device_add_param(rgb_ring_light, esp_rmaker_saturation_param_create(ESP_RMAKER_DEF_SATURATION_NAME, rgbpixel_get_saturation()));
-    esp_rmaker_device_add_param(rgb_ring_light, esp_rmaker_brightness_param_create(ESP_RMAKER_DEF_BRIGHTNESS_NAME, rgbpixel_get_brightness()));
+    // esp_rmaker_device_add_param(rgb_ring_light, ioc_hue_param_create(IOC_DEF_HUE_NAME, rgbpixel_get_hue()));
+    esp_rmaker_device_add_param(rgb_ring_light, ioc_hue_circle_param_create(IOC_DEF_HUE_NAME, rgbpixel_get_hue()));
+    esp_rmaker_device_add_param(rgb_ring_light, ioc_saturation_param_create(IOC_DEF_SATURATION_NAME, rgbpixel_get_saturation()));
+    esp_rmaker_device_add_param(rgb_ring_light, ioc_brightness_param_create(IOC_DEF_BRIGHTNESS_NAME, rgbpixel_get_brightness()));
     esp_rmaker_node_add_device(node, rgb_ring_light);
 
-    temperature_sensor = esp_rmaker_temp_sensor_device_create("Temperature Sensor", NULL, app_driver_sensor_get_current_temperature());
+    temperature_sensor = ioc_temp_sensor_device_create("Temperature Sensor", NULL, app_driver_sensor_get_current_temperature());
     esp_rmaker_node_add_device(node, temperature_sensor);
 
-    humidity_sensor = esp_rmaker_device_create("Humidity Sensor", "esp.device.humidity-sensor", NULL);
-    esp_rmaker_device_add_param(humidity_sensor, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, "Humidity Sensor"));
-    esp_rmaker_param_t *humidity_param = esp_rmaker_param_create("Humidity", NULL,
-            esp_rmaker_float(app_driver_sensor_get_current_humidity()), PROP_FLAG_READ);
-    esp_rmaker_device_add_param(humidity_sensor, humidity_param);
-    esp_rmaker_device_assign_primary_param(humidity_sensor, humidity_param);
+    humidity_sensor = ioc_humid_sensor_device_create("Humidity Sensor", NULL, app_driver_sensor_get_current_humidity());
     esp_rmaker_node_add_device(node, humidity_sensor);
 
-    luminosity_sensor = esp_rmaker_device_create("Luminosity Sensor", "esp.device.luminosity-sensor", NULL);
-    esp_rmaker_device_add_param(luminosity_sensor, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, "Luminosity Sensor"));
-    esp_rmaker_param_t *luminosity_param = esp_rmaker_param_create("Luminosity", NULL,
-            esp_rmaker_int(app_driver_sensor_get_current_luminosity()), PROP_FLAG_READ);
-    esp_rmaker_device_add_param(luminosity_sensor, luminosity_param);
-    esp_rmaker_device_assign_primary_param(luminosity_sensor, luminosity_param);
+    luminosity_sensor = ioc_lumen_sensor_device_create("Luminosity Sensor", NULL, app_driver_sensor_get_current_luminosity());
     esp_rmaker_node_add_device(node, luminosity_sensor);
 
     esp_device = esp_rmaker_device_create("ESP Device", NULL, NULL);
     esp_rmaker_device_add_cb(esp_device, write_cb, NULL);
-    esp_rmaker_device_add_param(esp_device, esp_rmaker_name_param_create(ESP_RMAKER_DEF_NAME_PARAM, "ESP Device"));
+    esp_rmaker_device_add_param(esp_device, ioc_name_param_create(IOC_DEF_NAME_PARAM, "ESP Device"));
     char mac[18];
     esp_err_t err = get_device_mac(mac, sizeof(mac));
     if (err == ESP_OK) {
         esp_rmaker_device_add_attribute(esp_device, "MAC", mac);
+        ESP_LOGI(TAG, "MAC address: %s", mac);
     }
     char pop[9];
     err = get_device_pop(pop, sizeof(pop), pop_type);
     if (err == ESP_OK && pop_type == POP_TYPE_MAC) {
         esp_rmaker_device_add_attribute(esp_device, "PoP", pop);
     }
-    esp_rmaker_param_t *reboot_param = esp_rmaker_param_create(ESP_RMAKER_DEF_REBOOT_NAME, ESP_RMAKER_PARAM_REBOOT,
-            esp_rmaker_bool(false), PROP_FLAG_READ | PROP_FLAG_WRITE);
-    esp_rmaker_param_add_ui_type(reboot_param, "esp.ui.trigger");
-    esp_rmaker_device_add_param(esp_device, reboot_param);
-    esp_rmaker_param_t *fct_reset_param = esp_rmaker_param_create("Factory Reset", ESP_RMAKER_PARAM_FACTORY_RESET,
-            esp_rmaker_bool(false), PROP_FLAG_READ | PROP_FLAG_WRITE);
-    esp_rmaker_param_add_ui_type(fct_reset_param, "esp.ui.trigger");
-    esp_rmaker_device_add_param(esp_device, fct_reset_param);
-    esp_rmaker_param_t *wifi_reset_param = esp_rmaker_param_create("Wi-Fi Reset", ESP_RMAKER_PARAM_WIFI_RESET,
-            esp_rmaker_bool(false), PROP_FLAG_READ | PROP_FLAG_WRITE);
-    esp_rmaker_param_add_ui_type(wifi_reset_param, "esp.ui.trigger");
-    esp_rmaker_device_add_param(esp_device, wifi_reset_param);
+    esp_rmaker_device_add_param(esp_device, ioc_reboot_param_create(IOC_DEF_REBOOT_NAME));
+    esp_rmaker_device_add_param(esp_device, ioc_wifi_reset_param_create(IOC_DEF_WIFI_RESET_NAME));
+    esp_rmaker_device_add_param(esp_device, ioc_factory_reset_param_create(IOC_DEF_FACTORY_RESET_NAME));
     esp_rmaker_node_add_device(node, esp_device);
 }
 

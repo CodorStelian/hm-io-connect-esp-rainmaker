@@ -1,28 +1,20 @@
-/*
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
+/**
+ * @file app_rainmaker.c
+ * RainMaker Init - Codor Stelian <codor.stelian.n@gmail.com>
+ * NO LICENSE
+ */
 #include <esp_log.h>
 #include <esp_rmaker_core.h>
 #include <esp_rmaker_ota.h>
 #include <esp_rmaker_schedule.h>
-#include <esp_wifi.h>
 
 #include <app_rainmaker.h>
 
-static const char TAG[] = "app_rainmaker";
+//static const char TAG[] = "app_rainmaker";
 
 esp_err_t app_rmaker_init(const char *node_name, const char *device_type, esp_rmaker_node_t **out_node)
 {
     esp_err_t err = ESP_OK;
-
-    // MAC address
-    uint8_t eth_mac[6] = {};
-    esp_wifi_get_mac(WIFI_IF_STA, eth_mac);
-    ESP_LOGI(TAG, "MAC address: %02x:%02x:%02x:%02x:%02x:%02x", eth_mac[0], eth_mac[1], eth_mac[2], eth_mac[3], eth_mac[4], eth_mac[5]);
 
     // Create node
     esp_rmaker_config_t cfg = {
@@ -50,7 +42,7 @@ esp_err_t app_rmaker_init(const char *node_name, const char *device_type, esp_rm
     *out_node = node;
     return ESP_OK;
 
-error:
-    if (node) esp_rmaker_node_deinit(node);
-    return err;
+    error:
+        if (node) esp_rmaker_node_deinit(node);
+        return err;
 }
