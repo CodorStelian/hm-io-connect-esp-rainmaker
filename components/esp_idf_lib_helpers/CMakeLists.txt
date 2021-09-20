@@ -1,4 +1,2 @@
-idf_component_register(
-    INCLUDE_DIRS .
-    REQUIRES freertos
-)
+idf_component_register(INCLUDE_DIRS "include"
+					REQUIRES freertos)

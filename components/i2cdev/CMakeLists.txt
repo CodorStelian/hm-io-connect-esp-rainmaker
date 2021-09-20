@@ -4,8 +4,6 @@ else()
     set(req driver freertos esp_idf_lib_helpers)
 endif()
 
-idf_component_register(
-    SRCS i2cdev.c
-    INCLUDE_DIRS .
-    REQUIRES ${req}
-)
+idf_component_register(SRCS "src/i2cdev.c"
+					INCLUDE_DIRS "include"
+					REQUIRES ${req})
