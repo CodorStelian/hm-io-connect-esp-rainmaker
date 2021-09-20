@@ -18,10 +18,16 @@ Control all of your ESP RainMaker devices with IO Connect Android app.
 
 ## Development
 
-Prepare [ESP-IDF development environment](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html#get-started-get-prerequisites)
+Prepare [ESP-IDF development environment](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/index.html#get-started-get-prerequisites).
 
 As an alternative, you can use [PlatformIO](https://docs.platformio.org/en/latest/core/installation.html) to build and
 flash the project.
+
+Please initialize ESP RainMaker submodule using the below command:
+
+```
+git submodule update --init --recursive
+```
 
 ## Build and Flash firmware
 
