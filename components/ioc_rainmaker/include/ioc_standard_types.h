@@ -21,6 +21,7 @@ extern "C"
 #define IOC_UI_TYPE_TEXT			"esp.ui.text"
 #define IOC_UI_TYPE_HIDDEN			"esp.ui.hidden"
 #define IOC_UI_TYPE_TRIGGER			"esp.ui.trigger"
+#define IOC_UI_TYPE_KNOB_BTN			"esp.ui.knob-btn"
 
 /********** STANDARD DEVICE TYPES **********/
 
