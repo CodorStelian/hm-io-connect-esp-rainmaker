@@ -14,7 +14,11 @@ menu "Application config"
         help
             GPIO number on which the "Boot" button is connected. This is generally used
             by the application for custom operations like toggling states, resetting to defaults, etc.
-
+			
+	config TOUCH_BUTTON_GPIO
+		int "Touch Button GPIO"
+		default 12
+		
     config I2C_SDA_GPIO
         int "I2C SDA GPIO"
         default 21

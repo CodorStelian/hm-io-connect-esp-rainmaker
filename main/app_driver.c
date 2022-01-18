@@ -53,6 +53,8 @@
 /* This is the button that is used for toggling the power */
 #define BUTTON_GPIO CONFIG_BOARD_BUTTON_GPIO
 #define BUTTON_ACTIVE_LEVEL 0
+#define TOUCH_BUTTON_GPIO CONFIG_TOUCH_BUTTON_GPIO
+#define TOUCH_BUTTON_ACTIVE_LEVEL 1
 #define WIFI_RESET_BUTTON_TIMEOUT 3
 #define FACTORY_RESET_BUTTON_TIMEOUT 10
 
@@ -187,6 +189,16 @@ static void push_btn_cb(void *arg)
         esp_rmaker_bool(new_light0_state));
 }
 
+static void push_btn_cb2(void *arg)
+{
+    ESP_LOGI(TAG, "Change state of Bedroom Light and sync it with cloud");
+    bool new_light0_state = !g_light0_power_state;
+    app_driver_set_light0_power_state(new_light0_state);
+    esp_rmaker_param_update_and_report(
+        esp_rmaker_device_get_param_by_type(bedroom_light, IOC_PARAM_POWER),
+        esp_rmaker_bool(new_light0_state));
+}
+
 static void set_light0_power_state(bool target)
 {
     gpio_set_level(RELAY_O_GPIO, target);
@@ -213,6 +225,13 @@ void app_driver_init()
         iot_button_set_evt_cb(btn_handle, BUTTON_CB_TAP, push_btn_cb, NULL);
         /* Register Wi-Fi reset and factory reset functionality on same button */
         app_reset_button_register(btn_handle, WIFI_RESET_BUTTON_TIMEOUT, FACTORY_RESET_BUTTON_TIMEOUT);
+    }
+	
+	button_handle_t touch_btn_handle = iot_button_create(TOUCH_BUTTON_GPIO, TOUCH_BUTTON_ACTIVE_LEVEL);
+    if (touch_btn_handle)
+    {
+        /* Register a callback for a button tap (short press) event */
+        iot_button_set_evt_cb(touch_btn_handle, BUTTON_CB_TAP, push_btn_cb2, NULL);
     }
 
     /* Configure the GPIO */
