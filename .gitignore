@@ -5,6 +5,7 @@
 CMakeListsPrivate.txt
 /cmake-build-*/
 /build/
+/managed_components/
 .vscode/settings.json
 sdkconfig
 sdkconfig.debug
