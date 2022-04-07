@@ -7,6 +7,7 @@
 #include <esp_rmaker_core.h>
 #include <esp_rmaker_ota.h>
 #include <esp_rmaker_schedule.h>
+#include <esp_rmaker_scenes.h>
 
 #include <app_rainmaker.h>
 
@@ -17,10 +18,10 @@ esp_err_t app_rmaker_init(const char *node_name, const char *device_type, esp_rm
     esp_err_t err = ESP_OK;
 
     // Create node
-    esp_rmaker_config_t cfg = {
+    esp_rmaker_config_t time_sync_service_cfg = {
         .enable_time_sync = true,
     };
-    esp_rmaker_node_t *node = esp_rmaker_node_init(&cfg, node_name, device_type);
+    esp_rmaker_node_t *node = esp_rmaker_node_init(&time_sync_service_cfg, node_name, device_type);
     if (!node) goto error;
 
     // Enable OTA
@@ -34,9 +35,13 @@ esp_err_t app_rmaker_init(const char *node_name, const char *device_type, esp_rm
     err = esp_rmaker_timezone_service_enable();
     if (err != ESP_OK) goto error;
 
-    //  Enable scheduling
+    // Enable scheduling
     err = esp_rmaker_schedule_enable();
     if (err != ESP_OK) goto error;
+	
+	// Enable scenes
+    err = esp_rmaker_scenes_enable();
+	if (err != ESP_OK) goto error;
 
     // Return
     *out_node = node;
