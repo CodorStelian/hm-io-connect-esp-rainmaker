@@ -126,21 +126,21 @@ esp_rmaker_param_t *ioc_speed_param_create(const char *param_name, int val)
 esp_rmaker_param_t *ioc_temperature_param_create(const char *param_name, float val)
 {
     esp_rmaker_param_t *param = esp_rmaker_param_create(param_name, IOC_PARAM_TEMPERATURE,
-            esp_rmaker_float(val), PROP_FLAG_READ);
+            esp_rmaker_float(val), PROP_FLAG_READ | PROP_FLAG_TIME_SERIES);
     return param;
 }
 
 esp_rmaker_param_t *ioc_humidity_param_create(const char *param_name, float val)
 {
     esp_rmaker_param_t *param = esp_rmaker_param_create(param_name, IOC_PARAM_HUMIDITY,
-            esp_rmaker_float(val), PROP_FLAG_READ);
+            esp_rmaker_float(val), PROP_FLAG_READ | PROP_FLAG_TIME_SERIES);
     return param;
 }
 
 esp_rmaker_param_t *ioc_luminosity_param_create(const char *param_name, int val)
 {
     esp_rmaker_param_t *param = esp_rmaker_param_create(param_name, IOC_PARAM_LUMINOSITY,
-            esp_rmaker_int(val), PROP_FLAG_READ);
+            esp_rmaker_int(val), PROP_FLAG_READ | PROP_FLAG_TIME_SERIES);
     return param;
 }
 

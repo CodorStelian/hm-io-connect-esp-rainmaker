@@ -227,6 +227,21 @@ static void rmk_event_handler(void* arg, esp_event_base_t event_base,
             default:
                 ESP_LOGW(TAG_EVENT, "Unhandled RainMaker Common Event: %d", event_id);
         }
+	} else if (event_base == APP_WIFI_EVENT) {
+        switch (event_id) {
+            case APP_WIFI_EVENT_QR_DISPLAY:
+                ESP_LOGI(TAG_EVENT, "Provisioning QR : %s", (char *)event_data);
+                break;
+            case APP_WIFI_EVENT_PROV_TIMEOUT:
+                ESP_LOGI(TAG_EVENT, "Provisioning Timed Out. Please reboot.");
+                break;
+            case APP_WIFI_EVENT_PROV_RESTART:
+                ESP_LOGI(TAG_EVENT, "Provisioning has restarted due to failures.");
+                break;
+            default:
+                ESP_LOGW(TAG_EVENT, "Unhandled App Wi-Fi Event: %d", event_id);
+                break;
+        }
     } else {
         ESP_LOGW(TAG_EVENT, "Invalid event received!");
     }
@@ -338,14 +353,14 @@ static void app_devices_init(esp_rmaker_node_t *node)
     esp_rmaker_device_add_cb(esp_device, write_cb, NULL);
     esp_rmaker_device_add_param(esp_device, ioc_name_param_create(IOC_DEF_NAME_PARAM, "ESP Device"));
     char mac[18];
-    esp_err_t err = get_device_mac(mac, sizeof(mac));
-    if (err == ESP_OK) {
+    esp_err_t err = get_dev_mac(mac);
+    if (err == ESP_OK && mac != NULL) {
         esp_rmaker_device_add_attribute(esp_device, "MAC", mac);
         ESP_LOGI(TAG, "MAC address: %s", mac);
     }
     char pop[9];
-    err = get_device_pop(pop, sizeof(pop), pop_type);
-    if (err == ESP_OK && pop_type == POP_TYPE_MAC) {
+    err = get_dev_pop(pop, pop_type);
+    if (err == ESP_OK && pop != NULL) {
         esp_rmaker_device_add_attribute(esp_device, "PoP", pop);
     }
     esp_rmaker_device_add_param(esp_device, ioc_reboot_param_create(IOC_DEF_REBOOT_NAME));
