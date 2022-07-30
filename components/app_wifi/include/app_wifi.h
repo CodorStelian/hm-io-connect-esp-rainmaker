@@ -9,6 +9,10 @@
 #include <esp_err.h>
 #include <esp_event.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef esp_err_t (*app_wifi_connect_fn)();
 
 struct app_wifi_config
@@ -46,3 +50,7 @@ esp_err_t app_wifi_init(const struct app_wifi_config *config);
 esp_err_t app_wifi_start(app_wifi_pop_type_t pop_type);
 esp_err_t get_dev_mac(char *mac);
 esp_err_t get_dev_pop(char *pop, app_wifi_pop_type_t pop_type);
+
+#ifdef __cplusplus
+}
+#endif
