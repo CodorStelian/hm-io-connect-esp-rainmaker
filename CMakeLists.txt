@@ -12,6 +12,6 @@ endif(DEFINED ENV{RMAKER_PATH})
 set(EXTRA_COMPONENT_DIRS ${RMAKER_PATH}/components/esp-insights/components ${RMAKER_PATH}/components ${RMAKER_PATH}/examples/common)
 
 # Project
-set(PROJECT_VER "v1.0.25_220730")
+set(PROJECT_VER "v1.0.29_221002")
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(hm_io_connect_esp_rainmaker)
