@@ -16,15 +16,16 @@
 
 #if CONFIG_APP_INSIGHTS_ENABLE_LOG_TYPE_ALL
 #define APP_INSIGHTS_LOG_TYPE               ESP_DIAG_LOG_TYPE_ERROR \
-											| ESP_DIAG_LOG_TYPE_WARNING \
+                                            | ESP_DIAG_LOG_TYPE_WARNING \
                                             | ESP_DIAG_LOG_TYPE_EVENT
 #else
-#define APP_INSIGHTS_LOG_TYPE ESP_DIAG_LOG_TYPE_ERROR
+#define APP_INSIGHTS_LOG_TYPE               ESP_DIAG_LOG_TYPE_ERROR
 #endif /* CONFIG_APP_INSIGHTS_ENABLE_LOG_TYPE_ALL */
 
 esp_err_t esp_insights_enable(esp_insights_config_t *config);
 
 #define INSIGHTS_TOPIC_SUFFIX       "diagnostics/from-node"
+#define INSIGHTS_TOPIC_RULE         "insights_message_delivery"
 
 static int app_insights_data_send(void *data, size_t len)
 {
@@ -37,7 +38,7 @@ static int app_insights_data_send(void *data, size_t len)
     if (!node_id) {
         return -1;
     }
-    snprintf(topic, sizeof(topic), "node/%s/%s", node_id, INSIGHTS_TOPIC_SUFFIX);
+    esp_rmaker_create_mqtt_topic(topic, sizeof(topic), INSIGHTS_TOPIC_SUFFIX, INSIGHTS_TOPIC_RULE);
     esp_rmaker_mqtt_publish(topic, data, len, RMAKER_MQTT_QOS1, &msg_id);
     return msg_id;
 }
@@ -66,7 +67,6 @@ static void rmaker_common_event_handler(void* arg, esp_event_base_t event_base,
             break;
     }
 }
-
 #endif /* CONFIG_ESP_INSIGHTS_ENABLED */
 
 #define TAG "app_insights"
@@ -77,7 +77,7 @@ esp_err_t app_insights_enable(void)
 #ifdef CONFIG_ESP_RMAKER_SELF_CLAIM
     ESP_LOGW(TAG, "Nodes with Self Claiming may not be accessible for Insights.");
 #endif
-   char *node_id = esp_rmaker_get_node_id();
+    char *node_id = esp_rmaker_get_node_id();
 
     esp_insights_transport_config_t transport = {
         .callbacks.data_send  = app_insights_data_send,
@@ -88,7 +88,8 @@ esp_err_t app_insights_enable(void)
 
     esp_insights_config_t config = {
         .log_type = APP_INSIGHTS_LOG_TYPE,
-		.node_id = node_id,
+        .node_id  = node_id,
+        .alloc_ext_ram = true,
     };
     esp_insights_enable(&config);
 #else
